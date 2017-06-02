@@ -5,7 +5,7 @@
  */
 
 enum {
-    RET = 0, ADDI=1, ADD=2, BNE=3
+    ADDI=1, ADD, BNE, BEQ
 };
 
 #define R(op, rs, rt, rd) ((op << (32-6)) | (rs << (32-6-5)) | (rt << (32-6-5-5)) | (rd << (32-6-5-5-5)))
@@ -20,6 +20,7 @@ enum {
 #define ADD(rd, rs, rt)  R(ADD,  rs, rt, rd)
 #define ADDI(rt, rs, im) I(ADDI, rs, rt, im)
 #define BNE(rs, rt, im) I(BNE, rs, rt, im)
+#define BEQ(rs, rt, im) I(BEQ, rs, rt, im)
 
 /*------------------------------------------------------------*/
 /* A sample code
@@ -106,6 +107,15 @@ int main() {
                 pc++;
             }
             break;
+        case BEQ:
+            if (reg_get (RS(inst)) == reg_get (RT(inst))) {
+                // PC相対アドレッシングはやらない
+                pc = IM(inst);
+            }else{
+                pc++;
+            }
+            break;
+
         default:
             printf ("invalid op: %x (in %x)\n", OP(inst), inst);
         }
