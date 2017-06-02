@@ -53,7 +53,6 @@ void mem_set (int addr, int value) {
     }
 }
 
-
 /*------------------------------------------------------------*/
 /* MIPS like Instruction Set
  */
@@ -158,10 +157,12 @@ void dump (void) {
     printf ("\n");
 }
 
+#define LENGTH(ary) (sizeof(ary)/sizeof(ary[0]))
+
 int fetch (int addr) {
-    if (0 <= addr && addr < sizeof(inst_mem)/sizeof(inst_mem[0])){
+    if (0 <= addr && addr < LENGTH(inst_mem)){
         return inst_mem[pc];
-    }else{
+    } else {
         printf ("invalid memory access %d\n", addr);
         return 0;
     }
@@ -169,7 +170,7 @@ int fetch (int addr) {
 
 void execute (int op, int rs, int rt, int rd, int im) {
     pc++;
-    if (0 <= op && op <= sizeof(instructions)/sizeof(instructions[0])) {
+    if (0 <= op && op <= LENGTH(instructions)) {
         instructions [op](rs, rt, rd, im);
     } else {
         printf ("invalid op: %x\n", op);
