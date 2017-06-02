@@ -115,45 +115,54 @@ int main() {
             return 0;
         }
 
-        switch (OP(inst)) {
-        case ADDI:
-            reg_set (RT(inst), reg_get (RS(inst)) + IM(inst));
-            pc++;
-            break;
-        case ADD:
-            reg_set (RD(inst), reg_get (RS(inst)) + reg_get (RT(inst)));
-            pc++;
-            break;
-        case SLT:
-            reg_set (RD(inst), reg_get (RS(inst)) < reg_get (RT(inst)));
-            pc++;
-            break;
-        case BNE:
-            if (reg_get (RS(inst)) != reg_get (RT(inst))) {
-                // PC相対アドレッシングはやらない
-                pc = IM(inst);
-            }else{
+        {
+            // decode
+            int rs = RS(inst);
+            int rt = RT(inst);
+            int rd = RD(inst);
+            int im = IM(inst);
+
+            // execute
+            switch (OP(inst)) {
+            case ADDI:
+                reg_set (rt, reg_get (rs) + im);
                 pc++;
-            }
-            break;
-        case BEQ:
-            if (reg_get (RS(inst)) == reg_get (RT(inst))) {
-                // PC相対アドレッシングはやらない
-                pc = IM(inst);
-            }else{
+                break;
+            case ADD:
+                reg_set (rd, reg_get (rs) + reg_get (rt));
                 pc++;
+                break;
+            case SLT:
+                reg_set (rd, reg_get (rs) + reg_get (rt));
+                pc++;
+                break;
+            case BNE:
+                if (reg_get (rs) != reg_get (rt)) {
+                    // PC相対アドレッシングはやらない
+                    pc = im;
+                }else{
+                    pc++;
+                }
+                break;
+            case BEQ:
+                if (reg_get (rs) != reg_get (rt)) {
+                    // PC相対アドレッシングはやらない
+                    pc = im;
+                }else{
+                    pc++;
+                }
+                break;
+            case LW:
+                reg_set (rt, mem_get (rs + im));
+                pc++;
+                break;
+            case SW:
+                mem_set (rs + im, reg_get (rt));
+                pc++;
+                break;
+            default:
+                printf ("invalid op: %x (in %x)\n", OP(inst), inst);
             }
-            break;
-        case LW:
-            reg_set (RT(inst), mem_get (RS(inst) + IM(inst)));
-            pc++;
-            break;
-        case SW:
-            mem_set (RS(inst) + IM(inst), reg_get (RT(inst)));
-            pc++;
-            break;
-        default:
-            printf ("invalid op: %x (in %x)\n", OP(inst), inst);
         }
 
         dump ();
