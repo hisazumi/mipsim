@@ -4,6 +4,7 @@
 /* MIPS like Processor Structure
  */
 
+static int time = 0;
 static int pc = 0;
 static int regs[32] = {0};
 
@@ -190,6 +191,7 @@ int main() {
 
         // execute
         execute (op, rs, rt, rd, im);
+        time++;
 
         // print status
         dump ();
