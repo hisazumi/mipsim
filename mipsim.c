@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#define LENGTH(ary) (sizeof(ary)/sizeof(ary[0]))
+
 /*------------------------------------------------------------*/
 /* MIPS like Processor Structure
  */
@@ -33,7 +35,7 @@ void reg_set (int n, int value) {
 /* memory */
 static int data_mem[100] = {0};
 int is_mem_addr_valid (int addr) {
-    return 0 <= addr && addr <= sizeof(data_mem)/sizeof(data_mem[0]);
+    return 0 <= addr && addr <= LENGTH(data_mem);
 }
 
 int mem_get (int addr) {
@@ -156,8 +158,6 @@ void dump (void) {
     }
     printf ("\n");
 }
-
-#define LENGTH(ary) (sizeof(ary)/sizeof(ary[0]))
 
 int fetch (int addr) {
     if (0 <= addr && addr < LENGTH(inst_mem)){
