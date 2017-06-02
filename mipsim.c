@@ -147,7 +147,7 @@ int main() {
                 }
                 break;
             case BEQ:
-                if (reg_get (rs) != reg_get (rt)) {
+                if (reg_get (rs) == reg_get (rt)) {
                     // PC相対アドレッシングはやらない
                     pc = im;
                 }else{
