@@ -5,7 +5,7 @@
  */
 
 enum {
-    ADDI=1, ADD, BNE, BEQ
+    ADDI=1, ADD, SLT, BNE, BEQ
 };
 
 #define R(op, rs, rt, rd) ((op << (32-6)) | (rs << (32-6-5)) | (rt << (32-6-5-5)) | (rd << (32-6-5-5-5)))
@@ -21,6 +21,7 @@ enum {
 #define ADDI(rt, rs, im) I(ADDI, rs, rt, im)
 #define BNE(rs, rt, im) I(BNE, rs, rt, im)
 #define BEQ(rs, rt, im) I(BEQ, rs, rt, im)
+#define SLT(rd, rs, rt) R(SLT, rs, rt, rd)
 
 /*------------------------------------------------------------*/
 /* A sample code
@@ -97,6 +98,10 @@ int main() {
             break;
         case ADD:
             reg_set (RD(inst), reg_get (RS(inst)) + reg_get (RT(inst)));
+            pc++;
+            break;
+        case SLT:
+            reg_set (RD(inst), reg_get (RS(inst)) < reg_get (RT(inst)));
             pc++;
             break;
         case BNE:
