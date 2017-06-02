@@ -33,7 +33,7 @@ int inst_mem[] = {
         ADDI(4, 0, 10001), //4: 10001
         ADD(2, 2, 1), //9: r2 += r1
         ADD(1, 1, 3), //10: r1 += r3
-        BNE(1, 4, -2), //11: if (counter != r3) => jmp 9
+        BNE(1, 4, 5), //11: if (counter != r3) => jmp 9
         0 //8: terminator
 };
 
@@ -56,7 +56,7 @@ int reg_get (int n) {
     } else if (1 <= n && n <= 31) {
         return regs[n];
     } else {
-        printf ("invalid register access: %d\n", n);
+        printf ("invalid register read: %d\n", n);
         return 0;
     }
 }
@@ -66,12 +66,17 @@ void reg_set (int n, int value) {
     } else if (1 <= n && n <= 31) {
         regs[n] = value;
     } else {
-        printf ("invalid register access: %d\n", n);
+        printf ("invalid register write: %d\n", n);
     }
 }
 
 int fetch (int addr) {
-    return inst_mem[pc];
+    if (0 <= addr && addr < sizeof(inst_mem)/sizeof(inst_mem[0])){
+        return inst_mem[pc];
+    }else{
+        printf ("invalid memory access %d\n", addr);
+        return 0;
+    }
 }
 
 int main() {
@@ -86,21 +91,26 @@ int main() {
 
         switch (OP(inst)) {
         case ADDI:
-            reg_set (RS(inst), reg_get (RT(inst)) + IM(inst));
+            reg_set (RT(inst), reg_get (RS(inst)) + IM(inst));
             pc++;
             break;
         case ADD:
-            reg_set (RS(inst), reg_get (RT(inst)) + reg_get (RD(inst)));
+            reg_set (RD(inst), reg_get (RS(inst)) + reg_get (RT(inst)));
             pc++;
             break;
         case BNE:
             if (reg_get (RS(inst)) != reg_get (RT(inst))) {
-                pc += IM(inst);
+                // PC相対アドレッシングはやらない
+                pc = IM(inst);
             }else{
                 pc++;
             }
             break;
+        default:
+            printf ("invalid op: %x (in %x)\n", OP(inst), inst);
         }
+
+        dump ();
     }
 
     return 0;
