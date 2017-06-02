@@ -5,7 +5,7 @@
  */
 
 enum {
-    ADDI=1, ADD, SLT, BNE, BEQ, LW, SW
+    ADDI=1, ADD, SLT, BNE, BEQ, LW, SW, SRL
 };
 
 #define R(op, rs, rt, rd) ((op << (32-6)) | (rs << (32-6-5)) | (rt << (32-6-5-5)) | (rd << (32-6-5-5-5)))
@@ -24,6 +24,7 @@ enum {
 #define SLT(rd, rs, rt) R(SLT, rs, rt, rd)
 #define LW(rt, im, rs) I(LW, rs, rt, im)
 #define SW(rt, im, rs) I(SW, rs, rt, im)
+#define SRL(rs, rt, n) I(SRL, rs, rt, im)
 
 /*------------------------------------------------------------*/
 /* A sample code
@@ -158,6 +159,10 @@ int main() {
                 break;
             case SW:
                 mem_set (rs + im, reg_get (rt));
+                pc++;
+                break;
+            case SRL:
+                reg_set (rs, reg_get (rt) >> im);
                 pc++;
                 break;
             default:
