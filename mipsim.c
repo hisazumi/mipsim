@@ -145,7 +145,7 @@ int inst_mem[] = {
 
 void dump (void) {
     printf ("==========\n");
-    printf ("pc: %d\n", pc);
+    printf ("pc: %d time: %d\n", pc, time);
     printf ("reg: ");
     for (int i = 0; i < 10; i++) {
         printf ("%x ", regs[i]);
