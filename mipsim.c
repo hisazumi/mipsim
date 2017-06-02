@@ -43,12 +43,13 @@ int inst_mem[] = {
         0 //8: terminator
 };
 
+static int time = 0;
 static int pc = 0;
 static int regs[32] = {0};
 
 void dump (void) {
     printf ("==========\n");
-    printf ("pc: %d\n", pc);
+    printf ("pc: %d time: %d\n", pc, time);
     printf ("reg: ");
     for (int i = 0; i < 10; i++) {
         printf ("%x ", regs[i]);
@@ -91,6 +92,7 @@ int is_mem_addr_valid (int addr) {
 }
 
 int mem_get (int addr) {
+    time += 10;
     if (is_mem_addr_valid (addr)) {
         return data_mem[addr];
     }else{
@@ -100,6 +102,7 @@ int mem_get (int addr) {
 }
 
 void mem_set (int addr, int value) {
+    time += 10;
     if (is_mem_addr_valid (addr)) {
         data_mem[addr] = value;
     }else{
@@ -175,6 +178,7 @@ int main() {
             }
         }
 
+        time++;
         dump ();
     }
 
