@@ -5,7 +5,7 @@
  */
 
 enum {
-    ADDI=1, ADD, SLT, BNE, BEQ
+    ADDI=1, ADD, SLT, BNE, BEQ, LW, SW
 };
 
 #define R(op, rs, rt, rd) ((op << (32-6)) | (rs << (32-6-5)) | (rt << (32-6-5-5)) | (rd << (32-6-5-5-5)))
@@ -22,6 +22,8 @@ enum {
 #define BNE(rs, rt, im) I(BNE, rs, rt, im)
 #define BEQ(rs, rt, im) I(BEQ, rs, rt, im)
 #define SLT(rd, rs, rt) R(SLT, rs, rt, rd)
+#define LW(rt, im, rs) I(LW, rs, rt, im)
+#define SW(rt, im, rs) I(SW, rs, rt, im)
 
 /*------------------------------------------------------------*/
 /* A sample code
@@ -81,6 +83,28 @@ int fetch (int addr) {
     }
 }
 
+static int data_mem[100] = {0};
+int is_mem_addr_valid (int addr) {
+    return 0 <= addr && addr <= sizeof(data_mem)/sizeof(data_mem[0]);
+}
+
+int mem_get (int addr) {
+    if (is_mem_addr_valid (addr)) {
+        return data_mem[addr];
+    }else{
+        printf ("invalid memory access %d\n", addr);
+        return 0;
+    }
+}
+
+void mem_set (int addr, int value) {
+    if (is_mem_addr_valid (addr)) {
+        data_mem[addr] = value;
+    }else{
+        printf ("invalid memory access %d\n", addr);
+    }
+}
+
 int main() {
     while (1) {
         int inst;
@@ -120,7 +144,14 @@ int main() {
                 pc++;
             }
             break;
-
+        case LW:
+            reg_set (RT(inst), mem_get (RS(inst) + IM(inst)));
+            pc++;
+            break;
+        case SW:
+            mem_set (RS(inst) + IM(inst), reg_get (RT(inst)));
+            pc++;
+            break;
         default:
             printf ("invalid op: %x (in %x)\n", OP(inst), inst);
         }
