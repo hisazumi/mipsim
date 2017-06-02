@@ -6,6 +6,8 @@
 
 static int time = 0;
 static int pc = 0;
+
+/* register */
 static int regs[32] = {0};
 
 int reg_get (int n) {
@@ -27,6 +29,8 @@ void reg_set (int n, int value) {
         printf ("invalid register write: %d\n", n);
     }
 }
+
+/* memory */
 static int data_mem[100] = {0};
 int is_mem_addr_valid (int addr) {
     return 0 <= addr && addr <= sizeof(data_mem)/sizeof(data_mem[0]);
