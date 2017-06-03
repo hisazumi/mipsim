@@ -68,7 +68,7 @@ void mem_set (int addr, int value) {
 #define IM(inst) (inst & 0x0000ffff)
 
 enum {
-    ADDI=1, ADD, SLT, BNE, BEQ, LW, SW, SRL, SLL
+    ADDI=1, ADD, SLT, BNE, BEQ, LW, SW, SRL, SLL, ANDI
 };
 
 #define R(op, rs, rt, rd) ((op << (32-6)) | (rs << (32-6-5)) | (rt << (32-6-5-5)) | (rd << (32-6-5-5-5)))
@@ -218,12 +218,23 @@ void sll_test (void) {
     assert (reg_get (2) == 20);
 }
 
+#define ANDI(rs, rt, im) I(ANDI, rs, rt, im)
+void andi (int rs, int rt, int rd, int im) {
+    reg_set (rs, reg_get (rt) & im);
+}
+
+void andi_test (void) {
+    reg_set (1, 0xff);
+    andi (2, 1, 0, 1);
+    assert (reg_get (2) == 0x01);
+}
+
 void (*instructions[])(int, int, int, int) = {
-    0, addi, add, slt, bne, beq, lw, sw, srl, sll
+    0, addi, add, slt, bne, beq, lw, sw, srl, sll, andi
 };
 
 void (*tests[])(void) = {
-    add_test, addi_test, bne_test, beq_test, slt_test, lw_test, sw_test, srl_test, sll_test
+    add_test, addi_test, bne_test, beq_test, slt_test, lw_test, sw_test, srl_test, sll_test, andi_test
 };
 
 /*------------------------------------------------------------*/
@@ -231,15 +242,37 @@ void (*tests[])(void) = {
  */
 
 int inst_mem[] = {
-        ADDI(0, 0, 0), //0: 0
-        ADDI(1, 0, 1), //1: counter
-        ADDI(2, 0, 0), //2; sum
-        ADDI(3, 0, 1), //3: 1
-        ADDI(4, 0, 10001), //4: 10001
-        ADD(2, 2, 1), //9: r2 += r1
-        ADD(1, 1, 3), //10: r1 += r3
-        BNE(1, 4, 5), //11: if (counter != r3) => jmp 9
-        0 //8: terminator
+    ADDI(1, 0, 10), // constant 10
+    ADDI(2, 0, 32), // constant 32
+    ADD(3, 0, 0), // i
+    ADD(4, 0, 0), // j
+    ADD(5, 0, 0), // tmp
+    ADD(7, 0, 0), // address A
+    ADDI(6, 0, 0), // bits = 0
+    ADDI(3, 0, 0), // i = 0
+//8 LOOP1
+    SLT(10, 3, 1), // i >= 10のときEXITに分岐
+    BEQ(10, 0, 25), // goto EXIT
+    ADD(11, 3, 3), // data[i]のアドレスを計算
+    ADD(11, 11, 11),
+    ADD(12, 11, 7),
+    LW(5, 0, 12),
+    ADDI(4, 0, 0), // j = 0
+//15 LOOP2
+    SLT(13, 4, 2), //  j >= 32のときNEXTに分岐
+    BEQ(13, 0, 23), // goto NEXT
+    ANDI(14, 5, 1), // (tmp & 0x1) != 0x0のときCONTに分岐
+    BNE(14, 0, 20), // goto CONT
+    ADDI(6, 6, 1), // bits++
+//20 CONT
+    SRL(5, 5, 1), // tmp >>= 1
+    ADDI(4, 4, 1), // j++
+    BEQ(0, 0, 15), // goto LOOP2
+//23 NEXT
+    ADDI(3, 3, 1), // i++
+    BEQ(0, 0, 8), // goto LOOP1
+//25 EXIT
+    0
 };
 
 void dump (void) {
