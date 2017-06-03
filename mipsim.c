@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 
 #define LENGTH(ary) (sizeof(ary)/sizeof(ary[0]))
 
@@ -83,9 +84,22 @@ DEFINST(add) {
     reg_set (rd, reg_get (rs) + reg_get (rt));
 }
 
+void add_test (void) {
+    reg_set (1, 10);
+    reg_set (2, 20);
+    add (1, 2, 3, 0);
+    assert (reg_get (3) == 30);
+}
+
 #define ADDI(rt, rs, im) I(ADDI, rs, rt, im)
 DEFINST(addi) {
     reg_set (rt, reg_get (rs) + im);
+}
+
+void addi_test (void) {
+    reg_set (1, 10);
+    addi (1, 2, 0, 20);
+    assert (reg_get (2) == 30);
 }
 
 #define BNE(rs, rt, im) I(BNE, rs, rt, im)
@@ -96,6 +110,20 @@ DEFINST(bne) {
     }
 }
 
+void bne_test (void) {
+    pc = 0;
+    // not equal
+    reg_set (1, 10);
+    reg_set (2, 20);
+    bne (1, 2, 0, 100);
+    assert (pc == 100);
+    // equal
+    reg_set (1, 10);
+    reg_set (2, 10);
+    bne (1, 2, 0, 100);
+    assert (pc == 100);
+}
+
 #define BEQ(rs, rt, im) I(BEQ, rs, rt, im)
 DEFINST (beq) {
     // PC相対アドレッシングではなくて，直接アドレッシング
@@ -104,24 +132,82 @@ DEFINST (beq) {
     }
 }
 
+void beq_test (void) {
+    pc = 0;
+    // not equal
+    reg_set (1, 10);
+    reg_set (2, 20);
+    beq (1, 2, 0, 100);
+    assert (pc == 0);
+    // equal
+    reg_set (1, 10);
+    reg_set (2, 10);
+    beq (1, 2, 0, 100);
+    assert (pc == 100);
+}
+
+
 #define SLT(rd, rs, rt) R(SLT, rs, rt, rd)
 DEFINST (slt) {
-    reg_set (rd, reg_get (rs) + reg_get (rt));
+    reg_set (rd, reg_get (rs) < reg_get (rt));
+}
+
+void slt_test (void) {
+    // less than
+    reg_set (1, 10);
+    reg_set (2, 20);
+    slt (1, 2, 3, 0);
+    assert (reg_get (3) != 0);
+    // not less than
+    reg_set (1, 10);
+    reg_set (2, 10);
+    slt (1, 2, 3, 0);
+    assert (reg_get (3) == 0);
 }
 
 #define LW(rt, im, rs) I(LW, rs, rt, im)
 DEFINST (lw) {
-    reg_set (rt, mem_get (rs + im));
+    reg_set (rt, mem_get (reg_get (rs) + im));
+}
+
+void lw_test (void) {
+    mem_set (10, 1234);
+    // without offset
+    reg_set (1, 10); // address
+    lw (1, 2, 0, 0);
+    assert (reg_get (2) == 1234);
+    // with offset
+    reg_set (1, 0); // address
+    lw (1, 2, 0, 10);
+    assert (reg_get (2) == 1234);
 }
 
 #define SW(rt, im, rs) I(SW, rs, rt, im)
 DEFINST (sw) {
-    mem_set (rs + im, reg_get (rt));
+    mem_set (reg_get (rs) + im, reg_get (rt));
 }
+
+void sw_test (void) {
+    // without offset
+    reg_set (1, 10); // address
+    reg_set (2, 1234); // data
+    sw (1, 2, 0, 0);
+    assert (mem_get (10) == 1234);
+    // with offset
+    sw (1, 2, 0, 1);
+    assert (mem_get (11) == 1234);
+}
+
 
 #define SRL(rs, rt, im) I(SRL, rs, rt, im)
 DEFINST (srl) {
     reg_set (rs, reg_get (rt) >> im);
+}
+
+void srl_test (void) {
+    reg_set (1, 10);
+    srl (2, 1, 0, 1);
+    assert (reg_get (2) == 5);
 }
 
 #define SLL(rs, rt, im) I(SLL, rs, rt, im)
@@ -129,8 +215,18 @@ DEFINST (sll) {
     reg_set (rs, reg_get (rt) << im);
 }
 
+void sll_test (void) {
+    reg_set (1, 10);
+    sll (2, 1, 0, 1);
+    assert (reg_get (2) == 20);
+}
+
 void (*instructions[])(int, int, int, int) = {
     0, addi, add, slt, bne, beq, lw, sw, srl, sll
+};
+
+void (*tests[])(void) = {
+    add_test, addi_test, bne_test, beq_test, slt_test, lw_test, sw_test, srl_test, sll_test
 };
 
 /*------------------------------------------------------------*/
@@ -177,7 +273,18 @@ void execute (int op, int rs, int rt, int rd, int im) {
     }    
 }
 
+void do_test (void) {
+    int i;
+    for (i=0 ; i<LENGTH(tests) ; i++) {
+        tests[i] ();
+    }
+}
+
 int main() {
+    do_test ();
+
+    pc = 0;
+
     while (1) {
         int inst;
 
