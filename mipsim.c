@@ -74,13 +74,11 @@ enum {
 #define R(op, rs, rt, rd) ((op << (32-6)) | (rs << (32-6-5)) | (rt << (32-6-5-5)) | (rd << (32-6-5-5-5)))
 #define I(op, rs, rt, im) ((op << (32-6)) | (rs << (32-6-5)) | (rt << (32-6-5-5)) | (im & 0xffff))
 
-#define DEFINST(name) void name (int rs, int rt ,int rd, int im)
-
-DEFINST(nop) {
+void nop (int rs, int rt ,int rd, int im) {
 }
 
 #define ADD(rd, rs, rt)  R(ADD,  rs, rt, rd)
-DEFINST(add) {
+void add (int rs, int rt ,int rd, int im) {
     reg_set (rd, reg_get (rs) + reg_get (rt));
 }
 
@@ -92,7 +90,7 @@ void add_test (void) {
 }
 
 #define ADDI(rt, rs, im) I(ADDI, rs, rt, im)
-DEFINST(addi) {
+void addi (int rs, int rt ,int rd, int im) {
     reg_set (rt, reg_get (rs) + im);
 }
 
@@ -103,7 +101,7 @@ void addi_test (void) {
 }
 
 #define BNE(rs, rt, im) I(BNE, rs, rt, im)
-DEFINST(bne) {
+void bne (int rs, int rt ,int rd, int im) {
     // PC相対アドレッシングではなくて，直接アドレッシング
     if (reg_get (rs) != reg_get (rt)) {
         pc = im;
@@ -125,7 +123,7 @@ void bne_test (void) {
 }
 
 #define BEQ(rs, rt, im) I(BEQ, rs, rt, im)
-DEFINST (beq) {
+void beq (int rs, int rt ,int rd, int im) {
     // PC相対アドレッシングではなくて，直接アドレッシング
     if (reg_get (rs) == reg_get (rt)) {
         pc = im;
@@ -146,9 +144,8 @@ void beq_test (void) {
     assert (pc == 100);
 }
 
-
 #define SLT(rd, rs, rt) R(SLT, rs, rt, rd)
-DEFINST (slt) {
+void slt (int rs, int rt ,int rd, int im) {
     reg_set (rd, reg_get (rs) < reg_get (rt));
 }
 
@@ -166,7 +163,7 @@ void slt_test (void) {
 }
 
 #define LW(rt, im, rs) I(LW, rs, rt, im)
-DEFINST (lw) {
+void lw (int rs, int rt ,int rd, int im) {
     reg_set (rt, mem_get (reg_get (rs) + im));
 }
 
@@ -183,7 +180,7 @@ void lw_test (void) {
 }
 
 #define SW(rt, im, rs) I(SW, rs, rt, im)
-DEFINST (sw) {
+void sw (int rs, int rt ,int rd, int im) {
     mem_set (reg_get (rs) + im, reg_get (rt));
 }
 
@@ -200,7 +197,7 @@ void sw_test (void) {
 
 
 #define SRL(rs, rt, im) I(SRL, rs, rt, im)
-DEFINST (srl) {
+void srl (int rs, int rt ,int rd, int im) {
     reg_set (rs, reg_get (rt) >> im);
 }
 
@@ -211,7 +208,7 @@ void srl_test (void) {
 }
 
 #define SLL(rs, rt, im) I(SLL, rs, rt, im)
-DEFINST (sll) {
+void sll (int rs, int rt ,int rd, int im) {
     reg_set (rs, reg_get (rt) << im);
 }
 
